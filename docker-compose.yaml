@@ -1,0 +1,48 @@
+version: '3.1'
+
+networks:
+  app-tier:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  video_data:
+    driver: local
+
+services:
+  mongodb:
+    image: 'bitnami/mongodb:latest'
+    networks:
+      - app-tier
+    volumes:
+      - mongodb_data:/bitnami
+    ports:
+      - "27017:27017"
+  backend-tier:
+    image: 'etherealyn/vat-backend:v0.3.3'
+    build: ./srv
+    networks:
+      - app-tier
+    ports:
+      - "3000:3000"
+    volumes:
+      - video_data:/videos
+    environment:
+      - CORS=http://$SAT_HOSTNAME:4200
+      - MULTER_DEST=/videos
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+    depends_on:
+      - mongodb
+  frontend-tier:
+    image: 'etherealyn/vat-frontend:v0.3.1'
+    build: ./web
+    networks:
+      - app-tier
+    ports:
+      - "4200:80"
+    environment:
+      - API_URL=http://$SAT_HOSTNAME:3000
+    depends_on:
+      - backend-tier
