@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError} from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 import { ProjectModel } from '../models/project.model';
 import { AuthService } from '../auth/auth.service';
-import { UserModel } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +29,9 @@ export class ProjectsService {
   currentProjects$: Observable<ProjectModel[]>;
 
   getProjects(): Observable<ProjectModel[]> {
-    const userId = this.authService.currentUserValue.id;
+    let userId = '';
+    if(this.authService.currentUserValue != undefined)
+      userId = this.authService.currentUserValue.id;
     return this.http.get<ProjectModel[]>(`${this.projectsUrl}/all/${userId}`)
       .pipe(
         catchError(this.handleError('getProjects', []))
@@ -50,6 +51,11 @@ export class ProjectsService {
 
   updateProjectMembers(project: ProjectModel): Observable<any> {
     return this.http.put<void>(`${this.projectsUrl}/${project.id}/members`, project)
+      .pipe(catchError(this.handleError<any>(`insertProject ${JSON.stringify(project)}`)));
+  }
+
+  updateProject(project: ProjectModel): Observable<any> {
+    return this.http.put<void>(`${this.projectsUrl}/${project.id}`, project)
       .pipe(catchError(this.handleError<any>(`insertProject ${JSON.stringify(project)}`)));
   }
 
@@ -89,11 +95,17 @@ export class ProjectsService {
   }
 
   exportCsv(projectId: string): Observable<any> {
-    return this.http.get(`${this.projectsUrl}/${projectId}/segments/csv`, {responseType: 'text'});
+    //return this.http.get(`${this.projectsUrl}/${projectId}/segments/csv`, {responseType: 'text'});
+    return this.http.get(`${this.projectsUrl}/${projectId}/annotations`, {responseType: 'text'});
   }
 
   getMembers(selectedProject: ProjectModel): Observable<any> {
     const ids = selectedProject.memberIds.toString();
     return this.authService.fetchUsers(ids);
+  }
+
+  getRecommendations(project: ProjectModel) {
+    return this.http.post(`${this.projectsUrl}/recommendations/${project.id}`, null)
+      .pipe(catchError(this.handleError<any>(`recommendation failed ${JSON.stringify(project)}`)));
   }
 }

@@ -1,0 +1,38 @@
+.fit-content-width {
+  width: fit-content;
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.align-color-picker {
+  margin-left: 0.5rem;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.hover-effect:hover {
+  background: rgba(255,255,255,1);
+  color: dodgerblue;
+}
+
+
+.clr-footer {
+  background: #002538;
+  height: 60px;
+  line-height: 60px;
+  padding: 0 24px;
+  margin-bottom: 0;
+}
+
+.top-padding-0 {
+  padding: 0 !important;
+}

@@ -3,7 +3,7 @@ import { ProjectsService } from './projects.service';
 import { ProjectModel } from '../models/project.model';
 import { UserModel } from '../models/user.model';
 import { AuthService } from '../auth/auth.service';
-import { ClrLoadingState } from '@clr/angular';
+import { CurrentToolService } from '../editor/project-toolbox.service';
 
 @Component({
   selector: 'app-projects',
@@ -20,7 +20,8 @@ export class ProjectsComponent implements OnInit {
   error = false;
 
   constructor(private projectsService: ProjectsService,
-              private authService: AuthService) {
+              private authService: AuthService,
+              private toolBoxService: CurrentToolService) {
   }
 
   ngOnInit() {
@@ -29,6 +30,9 @@ export class ProjectsComponent implements OnInit {
           this.projects = projects;
         }
       );
+
+    this.toolBoxService.triggerToolBox(false);
+    this.toolBoxService.triggerCanvas(null);
   }
 
   refresh() {
@@ -41,17 +45,17 @@ export class ProjectsComponent implements OnInit {
     });
     this.projectsService.getMembers(this.selectedProject).subscribe( members => {
       this.members = members;
-      console.log('Members : ', this.members);
       this.inviteMembers = true;
     });
   }
 
   onDelete(id: string) {
-    this.projectsService.deleteProject(id)
-      .subscribe(temp => {
-        this.projectsService.reload();
-        }
-      );
+    if(confirm("Are you sure you want to delete the selected project?"))
+      this.projectsService.deleteProject(id)
+        .subscribe(temp => {
+          this.projectsService.reload();
+          }
+        );
   }
 
   invite() {

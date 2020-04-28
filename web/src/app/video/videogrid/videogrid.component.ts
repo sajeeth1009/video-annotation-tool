@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChildren, ElementRef, ViewChild } from '@angular/core';
 import { VgAPI } from 'videogular2/core';
 import { IVideo } from '../video.interface';
 import { CurrentProjectService } from '../../editor/current-project.service';
@@ -8,6 +8,8 @@ import { VideoService } from '../video.service';
 import { Hotkey, HotkeysService } from 'angular2-hotkeys';
 import { Subscription } from 'rxjs';
 import { VideoComponent } from '../video/video.component';
+import {CurrentToolService} from "../../editor/project-toolbox.service";
+import {CanvasService} from "../../canvas/canvas.service";
 
 @Component({
   selector: 'app-videogrid',
@@ -15,6 +17,7 @@ import { VideoComponent } from '../video/video.component';
   styleUrls: ['./videogrid.component.scss']
 })
 export class VideogridComponent implements OnInit, OnDestroy {
+
   private _videoSources: IVideo[] = [];
   private apis: LinkedList<VgAPI> = new LinkedList<VgAPI>();
   private currentTimes: number[] = [];
@@ -27,6 +30,8 @@ export class VideogridComponent implements OnInit, OnDestroy {
   private playbackValues: string[] = ['0.25', '0.5', '0.75', '1.0', '1.25', '1.50', '1.75', '2.0', '3.0'];
   private subscription: Subscription;
   private mainIndex = 0;
+  private dimensions: string = '';
+  private singleMedia: boolean;
   loading = true;
 
   // 'main' video index
@@ -35,7 +40,10 @@ export class VideogridComponent implements OnInit, OnDestroy {
 
   constructor(private videoService: VideoService,
               private editorService: CurrentProjectService,
-              private hotkeysService: HotkeysService) {
+              private hotkeysService: HotkeysService,
+              private elRef: ElementRef,
+              private toolBoxService: CurrentToolService,
+              private canvasService: CanvasService) {
     this.registerHotkeys();
   }
 
@@ -43,6 +51,7 @@ export class VideogridComponent implements OnInit, OnDestroy {
     this.subscription = this.editorService.getCurrentProject$().subscribe(project => {
       if (project) {
         this.loading = false;
+        this.singleMedia = project.singleMedia;
 
         /** Gather all videoSources */
         const videos: IVideo[] = [];
@@ -51,7 +60,7 @@ export class VideogridComponent implements OnInit, OnDestroy {
             videos.push({source: child.filename});
           }
         }));
-
+        this.dimensions = project.videoDimensions;
         this._videoSources = videos;
         this.durations = new Array<number>(videos.length);
         this.currentTimes = new Array<number>(videos.length);
@@ -84,7 +93,13 @@ export class VideogridComponent implements OnInit, OnDestroy {
       const height = x.target.videoHeight;
 
       if (height > width) {
-        this.ratio = '1:2';
+        if(this.dimensions && this.dimensions != '') this.ratio = '' + this.dimensions.split(' ')[0];
+        else this.ratio = '1:2';
+      }
+
+      if(this.singleMedia) {
+        if(this.dimensions && this.dimensions != '') this.ratio = '' + this.dimensions.split(' ')[0];
+        else this.ratio = "" + (this.elRef.nativeElement.parentElement.clientHeight - 50);
       }
     }));
   }
@@ -127,6 +142,10 @@ export class VideogridComponent implements OnInit, OnDestroy {
   }
 
   onPlayPause() {
+    console.log("Play pause?");
+    this.toolBoxService.triggerToolBox(false);
+    this.toolBoxService.triggerCanvas(null);
+    this.toolBoxService.updateItemSelectStatus(false);
     if (!this.isPlaying) {
       this.onPlay();
     } else {
@@ -213,26 +232,40 @@ export class VideogridComponent implements OnInit, OnDestroy {
     }, undefined, `Follow the mouse cursor to listen to the audio`);
 
     const back = new Hotkey('left', (): boolean => {
+      this.resetCanvas();
       this.seekTime(this.getCurrentTime() - 5);
       return false;
     }, undefined, '5 seconds back');
 
     const windback = new Hotkey('shift+left', (): boolean => {
+      this.resetCanvas();
       this.seekTime(this.getCurrentTime() - 15);
       return false;
     }, undefined, '15 seconds back');
 
     const forward = new Hotkey('right', (): boolean => {
+      this.resetCanvas();
       this.seekTime(this.getCurrentTime() + 5);
       return false;
     }, undefined, '5 seconds forward');
 
     const windforward = new Hotkey('shift+right', (): boolean => {
+      this.resetCanvas();
       this.seekTime(this.getCurrentTime() + 15);
       return false;
     }, undefined, '15 seconds forward');
 
     [playVideoHotkey, nextPlayback, prevPlayback, cursorSound, back, windback, forward, windforward]
       .forEach(hotkey => this.hotkeysService.add(hotkey));
+  }
+
+  onResize($event) {
+    this.ngOnInit();
+  }
+
+  resetCanvas() {
+    this.toolBoxService.triggerToolBox(false);
+    this.toolBoxService.triggerCanvas(null);
+    this.toolBoxService.updateItemSelectStatus(false);
   }
 }

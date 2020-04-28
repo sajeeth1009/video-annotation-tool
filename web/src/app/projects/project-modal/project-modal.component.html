@@ -1,4 +1,66 @@
-<button class="btn btn-primary" (click)="modalOpen = true">New Project</button>
+<button  *ngIf="!freshStart" class="btn btn-icon btn-primary add-button" (click)="modalOpen = true"  aria-label="Create New Project">
+  <clr-icon shape="plus"></clr-icon>
+</button>
+<div *ngIf="freshStart" class="full-screen clr-row  margin-right-left-none">
+    <div class="grey-card set-card-borders">
+      <div class="clr-row margin-right-left-none">
+        <div class="clr-col-5">
+          <span class="invite-text">Lets get started.</span>
+        </div>
+
+        <div class="clr-col-2">
+          <div class="card-start card-img">
+            <img src="assets/playButton.png" (click)="modalOpen = true">
+          </div>
+        </div>
+
+        <div class="clr-col-4">
+          <div class="project-text-div">
+            <span class="project-text">Click the icon to create a project to upload videos and begin annotating them.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div *ngIf="freshStart" class="clr-row margin-top margin-right-left-none">
+    <div class="clr-col max-width-35 min-width-25 margin-left-25">
+      <div class="card card-color info-card border-shadow-none">
+        <div class="card-img">
+          <img src="assets/video.png">
+        </div>
+        <div class="card-block">
+          <div class="card-text info-text">
+            <strong>Manage multiple projects, label videos, and track objects across frames of the video.</strong><br>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col max-width-35 margin-between-info min-width-25">
+      <div class="card card-color info-card border-shadow-none">
+        <div class="card-img">
+          <img src="assets/people.png">
+        </div>
+        <div class="card-block">
+          <div class="card-text info-text">
+            <strong>Collaborate with multiple contributors and simultaneously annotate videos. </strong><br>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="clr-col max-width-35 margin-between-info min-width-25">
+      <div class="card card-color info-card border-shadow-none">
+        <div class="card-img">
+          <img src="assets/json.png">
+        </div>
+        <div class="card-block">
+          <div class="card-text info-text">
+            <strong>Export annotation results in a json format that can be easily used to in training models.</strong><br>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
 
 <clr-modal [(clrModalOpen)]="modalOpen">
 
@@ -8,7 +70,8 @@
     <form (ngSubmit)="onSubmit(projectForm.form)" #projectForm="ngForm" class="compact">
       <div class="form-group">
         <label for="title">Title</label>
-        <input type="text" class="form-control" id="title" required [(ngModel)]="model.title" name="title"
+        <input type="text" class="form-control" id="title"
+               [(ngModel)]="model.title" name="title"
                #name="ngModel">
         <div [hidden]="name.valid || name.pristine"
              class="alert alert-danger">
@@ -20,6 +83,87 @@
         <label for="description">Description</label>
         <textarea id="description" class="form-control" [(ngModel)]="model.description" name="description"></textarea>
       </div>
+
+      <div class="form-group">
+        <label class="margin-top">Project Type</label>
+        <clr-toggle-container clrInline>
+          <clr-toggle-wrapper>
+            <input type="checkbox" clrToggle name="options" value='true' [(ngModel)]="singleMedia" />
+            <label>Single Video Project</label>
+          </clr-toggle-wrapper><!--
+          <clr-toggle-wrapper>
+            <input type="checkbox" clrToggle name="options" required value='false' [(ngModel)]="singleMedia" />
+            <label>Multiple Video Project</label>
+          </clr-toggle-wrapper>-->
+          <clr-control-helper>Spatial annotation and Object tracking is enabled in single video projects</clr-control-helper>
+          <clr-control-error>This field is required!</clr-control-error>
+        </clr-toggle-container>
+      </div>
+
+      <div class="form-group">
+        <label for="members">Project Members</label>
+        <clr-control-helper>Add members as contributors to the project</clr-control-helper>
+      </div>
+
+      <!-- MARK UP FOR SUPERVISORS
+
+      <clr-tree-node>
+        <div>
+          <clr-icon [attr.shape]='supervisorModel.status ? "folder-open" : "folder"'></clr-icon>
+          <label>Supervisors</label>
+        </div>
+        <ng-template [(clrIfExpanded)]="supervisorModel.status">
+          <div>
+            <a *ngFor="let user of model.supervisorIds" class="label label-light-blue clickable" (click)="deselectUser(user, supervisorModel)">
+              {{user.username}}
+              <span class="badge">x</span>
+            </a>
+          </div>
+          <form class="search">
+            <label for="search_supervisor" class="width-max">
+              <input class="width-90" id="search_supervisor" type="text" placeholder="Search for users by username" [(ngModel)]="supervisorModel.name" [ngModelOptions]="{standalone: true}" (ngModelChange)="onSupervisorChange($event)">
+              <clr-icon shape="search"></clr-icon>
+            </label>
+          </form>
+          <div class="dropdown open overflow width-90"  *ngIf="supervisorModel.searchStatus !== undefined && !supervisorModel.searchStatus" [hidden]="supervisorModel.searchStatus">
+            <div class="dropdown-menu relative-position width-max">
+              <div *ngFor="let user of supervisorModel.members">
+                <div aria-label="Dropdown header" class="dropdown-item" (click)="selectUser(user, supervisorModel)">{{user.username}}</div>
+              </div>
+              <div class="dropdown-item" [hidden]="supervisorModel.emptyMemberStatus">No Users Found</div>
+            </div>
+          </div>
+        </ng-template>
+      </clr-tree-node> -->
+
+      <clr-tree-node>
+      <div>
+        <clr-icon [attr.shape]='contributorModel.status ? "folder-open" : "folder"'></clr-icon>
+        <label>Contributors</label>
+      </div>
+      <ng-template [(clrIfExpanded)]="contributorModel.status">
+        <div>
+          <a *ngFor="let user of model.contributorIds" class="label label-light-blue clickable" (click)="deselectUser(user, contributorModel)">
+            {{user.username}}
+            <span class="badge">x</span>
+          </a>
+        </div>
+        <form class="search">
+          <label for="search_contributor" class="width-max">
+            <input class="width-90" id="search_contributor" type="text" placeholder="Search for users by username" [(ngModel)]="contributorModel.name" [ngModelOptions]="{standalone: true}" (ngModelChange)="onContributorChange(this)">
+            <clr-icon shape="search"></clr-icon>
+          </label>
+        </form>
+        <div class="dropdown open overflow width-90"  *ngIf="contributorModel.searchStatus !== undefined && !contributorModel.searchStatus" [hidden]="contributorModel.searchStatus">
+          <div class="dropdown-menu relative-position width-max">
+            <div *ngFor="let user of contributorModel.members">
+              <div aria-label="Dropdown header" class="dropdown-item" (click)="selectUser(user, contributorModel)">{{user.username}}</div>
+            </div>
+            <div class="dropdown-item" [hidden]="contributorModel.emptyMemberStatus">No Users Found</div>
+          </div>
+        </div>
+      </ng-template>
+    </clr-tree-node>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" (click)="modalOpen = false">Cancel</button>

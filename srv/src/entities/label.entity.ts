@@ -1,6 +1,7 @@
-import { Column, Entity, ObjectIdColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, ObjectIdColumn } from 'typeorm';
 import { Segment } from './segment.entity';
 import { ObjectID } from 'mongodb';
+import { LabelCategory } from './labelcategory.entity';
 
 @Entity()
 export class Label {
@@ -16,9 +17,13 @@ export class Label {
   @Column()
   authorId: ObjectID;
 
-  constructor(projectId: ObjectID, authorId: ObjectID, name: string) {
+  @Column()
+  authorClass: string;
+
+  constructor(projectId: ObjectID, authorId: ObjectID, name: string, authorClass: string) {
     this.projectId = projectId;
     this.authorId = authorId;
     this.name = name;
+    this.authorClass = authorClass;
   }
 }

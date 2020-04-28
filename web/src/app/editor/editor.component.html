@@ -2,25 +2,37 @@
 <hotkeys-cheatsheet></hotkeys-cheatsheet>
 
 <as-split [direction]="direction">
-  <as-split-area size="50">
+  <as-split-area size="60">
     <div class="float">
-    <button
+    <!-- <button
       class="btn btn-warning btn-sm"
-      (click)="direction = (direction === 'horizontal') ? 'vertical' : 'horizontal'">
+      (click)=" direction = (direction === 'horizontal') ? 'vertical' : 'horizontal'">
       {{ 'Toggle direction: "' + direction + '"' }}
-    </button>
+    </button> -->
 
       <button
         class="btn btn-primary btn-sm"
-        title="Download labelled segments as CSV"
+        title="Download labelled segments as a JSON"
         (click)="onExport()">
-        CSV
+        <span *ngIf="inExportProgress" class="spinner spinner-inline">
+            Loading...
+        </span>
+        <label *ngIf="!inExportProgress" class="pointer">JSON</label>
       </button>
 
     </div>
     <app-videogrid></app-videogrid>
   </as-split-area>
-  <as-split-area size="50">
+  <as-split-area size="40">
     <app-timeline></app-timeline>
   </as-split-area>
 </as-split>
+<div class="usergrid">
+  <div class="clr-row">
+    <div class="clr-col-10"></div>
+    <div class="clr-col-2 scroll">
+        <div *ngFor="let user of users" class="margin-top-02-rem"><div class="colordial" [style.background]="user['color']" title="{{user.username}}">{{user.username.charAt(0)}}</div></div>
+        <div class="margin-top-02-rem"><div class="colordial system-color" title="System Recommendation">S</div></div>
+    </div>
+  </div>
+</div>
